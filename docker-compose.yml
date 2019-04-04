@@ -1,0 +1,34 @@
+version: "3"
+services:
+
+  tomcat:
+    volumes:
+      - ${MUSIC_FOLDER}:/var/music
+      - airsonic-config:/var/airsonic
+    environment:
+      - TZ=Europe/Madrid
+    ports:
+      - ${AIRSONIC_PORT:-8080}:8080/tcp
+    restart: unless-stopped
+    network_mode: "service:vpn"
+    image: icarrilloquero/rpi-airsonic
+    depends_on:
+      - vpn
+
+  vpn:
+    volumes:
+      - airsonic-ovpn-data:/etc/openvpn
+    environment:
+      - TZ=Europe/Madrid
+    ports:
+      - ${VPN_PORT:-1194}:1194/${PROTOCOL:-udp}
+      - ${AIRSONIC_PORT:-8080}:8080/tcp
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    image: mjenz/rpi-openvpn
+
+volumes:
+  airsonic-ovpn-data:
+    external: true
+  airsonic-config:
